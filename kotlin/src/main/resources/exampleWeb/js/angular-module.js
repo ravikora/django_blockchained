@@ -49,7 +49,7 @@ app.controller('DemoAppController', function($http, $location, $uibModal) {
         modalInstance.result.then(() => {}, () => {});
     };
 
-    demoApp.getPOs = () => $http.get(apiBaseURL + "purchase-orders")
+    demoApp.getPOs = () => $http.get(apiBaseURL + "token-orders")
         .then((response) => demoApp.pos = Object.keys(response.data)
             .map((key) => response.data[key].state.data)
             .reverse());
@@ -63,23 +63,20 @@ app.controller('ModalInstanceCtrl', function ($http, $location, $uibModalInstanc
     modalInstance.peers = peers;
     modalInstance.form = {};
     modalInstance.formError = false;
-    modalInstance.items = [{}];
 
-    // Validate and create purchase order.
+    // Validate and create token order.
     modalInstance.create = () => {
         if (invalidFormInput()) {
             modalInstance.formError = true;
         } else {
             modalInstance.formError = false;
 
-            const po = {
-                orderNumber: modalInstance.form.orderNumber,
-                deliveryDate: modalInstance.form.deliveryDate,
-                deliveryAddress: {
-                    city: modalInstance.form.city,
-                    country: modalInstance.form.country.toUpperCase()
-                },
-                items: modalInstance.items
+            const to = {
+                tokenOrderId: modalInstance.form.tokenOrderId,
+                courseName: modalInstance.form.courseName,
+                tokenAmount: modalInstance.form.tokenAmount,
+                completeDate: modalInstance.form.completeDate
+
             };
 
             $uibModalInstance.close();
@@ -87,10 +84,10 @@ app.controller('ModalInstanceCtrl', function ($http, $location, $uibModalInstanc
             const createPoEndpoint =
                 apiBaseURL +
                 modalInstance.form.counterparty +
-                "/create-purchase-order";
+                "/create-token-order";
 
-            // Create PO and handle success / fail responses.
-            $http.put(createPoEndpoint, angular.toJson(po)).then(
+            // Create Token Order and handle success / fail responses.
+            $http.put(createPoEndpoint, angular.toJson(to)).then(
                 (result) => modalInstance.displayMessage(result),
                 (result) => modalInstance.displayMessage(result)
             );
@@ -120,19 +117,16 @@ app.controller('ModalInstanceCtrl', function ($http, $location, $uibModalInstanc
 
     // Validate the purchase order.
     function invalidFormInput() {
-        const invalidNonItemFields = !modalInstance.form.orderNumber
-            || isNaN(modalInstance.form.orderNumber)
-            || !modalInstance.form.deliveryDate
-            || !modalInstance.form.city
-            || !modalInstance.form.country;
+        const invalidNonItemFields = !modalInstance.form.tokenOrderId
+            || isNaN(modalInstance.form.tokenOrderId)
+            || !modalInstance.form.completeDate
+            || !modalInstance.form.courseName
+            || !modalInstance.form.tokenAmount;
 
         const inValidCounterparty = modalInstance.form.counterparty === undefined;
 
-        const invalidItemFields = modalInstance.items
-            .map(item => !item.name || !item.amount || isNaN(item.amount))
-            .reduce((prev, curr) => prev && curr);
 
-        return invalidNonItemFields || inValidCounterparty || invalidItemFields;
+        return invalidNonItemFields || inValidCounterparty;
     }
 });
 
