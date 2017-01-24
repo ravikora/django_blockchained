@@ -32,7 +32,7 @@ import java.text.SimpleDateFormat
  *
  * All contracts must sub-class the [Contract] interface.
  */
-open class CourseContract() : Contract {
+open class TaskContract() : Contract {
 
     /**
      * The AllComposition() clause mandates that all specified clauses clauses (in this case [Timestamped] and [Group])

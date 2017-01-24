@@ -20,10 +20,10 @@ class TokenOrderTests {
         val tokenOrder = TokenOrder(1,tokenItem)
         ledger {
             transaction {
-                output { EarnTokenState(tokenOrder, ALICE, MEGA_CORP, CourseContract()) }
+                output { EarnTokenState(tokenOrder, ALICE, MEGA_CORP, TaskContract()) }
                 `fails with`("must be timestamped")
                 timestamp(TEST_TX_TIME)
-                command(MEGA_CORP_PUBKEY, ALICE_PUBKEY) { CourseContract.Commands.Place() }
+                command(MEGA_CORP_PUBKEY, ALICE_PUBKEY) { TaskContract.Commands.Place() }
                 verifies()
             }
         }
@@ -35,10 +35,10 @@ class TokenOrderTests {
         val tokenOrder = TokenOrder(1,tokenItem)
         ledger {
             transaction {
-                output { EarnTokenState(tokenOrder, ALICE, MEGA_CORP, CourseContract()) }
+                output { EarnTokenState(tokenOrder, ALICE, MEGA_CORP, TaskContract()) }
                 timestamp(TEST_TX_TIME)
                 fails()
-                command(MEGA_CORP_PUBKEY, ALICE_PUBKEY) { CourseContract.Commands.Place() }
+                command(MEGA_CORP_PUBKEY, ALICE_PUBKEY) { TaskContract.Commands.Place() }
                 verifies()
             }
         }
@@ -50,9 +50,9 @@ class TokenOrderTests {
         val tokenOrder = TokenOrder(1,tokenItem)
         ledger {
             transaction {
-                output { EarnTokenState(tokenOrder, ALICE, MEGA_CORP, CourseContract()) }
+                output { EarnTokenState(tokenOrder, ALICE, MEGA_CORP, TaskContract()) }
                 timestamp(TEST_TX_TIME)
-                command(ALICE_PUBKEY) { CourseContract.Commands.Place() }
+                command(ALICE_PUBKEY) { TaskContract.Commands.Place() }
                 `fails with`("All of the participants must be signers.")
             }
         }
@@ -64,9 +64,9 @@ class TokenOrderTests {
         val tokenOrder = TokenOrder(1,tokenItem)
         ledger {
             transaction {
-                output { EarnTokenState(tokenOrder, ALICE, MEGA_CORP, CourseContract()) }
+                output { EarnTokenState(tokenOrder, ALICE, MEGA_CORP, TaskContract()) }
                 timestamp(TEST_TX_TIME)
-                command(MEGA_CORP_PUBKEY) { CourseContract.Commands.Place() }
+                command(MEGA_CORP_PUBKEY) { TaskContract.Commands.Place() }
                 `fails with`("All of the participants must be signers.")
             }
         }
@@ -78,9 +78,9 @@ class TokenOrderTests {
         val tokenOrder = TokenOrder(1,tokenItem)
         ledger {
             transaction {
-                output { EarnTokenState(tokenOrder, ALICE, MEGA_CORP, CourseContract()) }
+                output { EarnTokenState(tokenOrder, ALICE, MEGA_CORP, TaskContract()) }
                 timestamp(TEST_TX_TIME)
-                command(MEGA_CORP_PUBKEY, ALICE_PUBKEY) { CourseContract.Commands.Place() }
+                command(MEGA_CORP_PUBKEY, ALICE_PUBKEY) { TaskContract.Commands.Place() }
                 `fails with`("Token amount for a task must be greater than 0")
             }
         }
@@ -92,9 +92,9 @@ class TokenOrderTests {
         val tokenOrder = TokenOrder(1,tokenItem)
         ledger {
             transaction {
-                output { EarnTokenState(tokenOrder, ALICE, MEGA_CORP, CourseContract()) }
+                output { EarnTokenState(tokenOrder, ALICE, MEGA_CORP, TaskContract()) }
                 timestamp(TEST_TX_TIME)
-                command(MEGA_CORP_PUBKEY, ALICE_PUBKEY) { CourseContract.Commands.Place() }
+                command(MEGA_CORP_PUBKEY, ALICE_PUBKEY) { TaskContract.Commands.Place() }
                 `fails with`("Task completion date must be before due date")
             }
         }

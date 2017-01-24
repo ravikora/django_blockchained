@@ -1,12 +1,7 @@
-/**
- * Created by ravi on 1/24/17.
- */
 package com.example.contract
 
-import com.example.contract.PurchaseOrderContract.Commands
-import com.example.model.PurchaseOrder
-import com.example.model.TokenOrder
-import com.example.schema.TokenOrderSchemaV1
+import com.example.model.RedeemTokenOrder
+import com.example.schema.RedeemOrderSchemaV1
 import net.corda.core.contracts.Command
 import net.corda.core.contracts.DealState
 import net.corda.core.contracts.TransactionType
@@ -18,6 +13,10 @@ import net.corda.core.schemas.PersistentState
 import net.corda.core.schemas.QueryableState
 import net.corda.core.transactions.TransactionBuilder
 import java.security.PublicKey
+
+/**
+ * Created by ravi on 1/24/17.
+ */
 
 /**
  * The state object which we will use the record the agreement of a valid token issued by an issuer to an employee.
@@ -33,16 +32,16 @@ import java.security.PublicKey
  * transaction types.
  * @param linearId Unique id shared by all [LinearState] states throughout history within the vaults of all parties.
  */
-data class EarnTokenState(val tokenOrder: TokenOrder,
-                          val employee: Party,
-                          val issuer: Party,
-                          override val contract: TaskContract,
-                          override val linearId: UniqueIdentifier = UniqueIdentifier(tokenOrder.tokenOrderId.toString())):
+data class RedeemTokenState(val redeemTokenOrder: RedeemTokenOrder,
+                            val employee: Party,
+                            val vendor: Party,
+                            override val contract: TaskContract,
+                            override val linearId: UniqueIdentifier = UniqueIdentifier(redeemTokenOrder.redeemTokenOrderId.toString())):
         DealState, QueryableState {
     /** Another ref field, for matching with data in external systems. In this case the external Id is the po number. */
     override val ref: String get() = linearId.externalId!!
     /** List of parties involved in this particular deal */
-    override val parties: List<Party> get() = listOf(employee, issuer)
+    override val parties: List<Party> get() = listOf(employee, vendor)
     /** The public keys of the parties that are able to consume this state in a valid transaction. */
     override val participants: List<CompositeKey> get() = parties.map { it.owningKey }
 
@@ -69,18 +68,17 @@ data class EarnTokenState(val tokenOrder: TokenOrder,
     override fun generateMappedObject(schema: MappedSchema): PersistentState {
         // TODO: Deal with the one to many relationship between POs and Items.
         return when (schema) {
-            is TokenOrderSchemaV1 -> TokenOrderSchemaV1.PersistentTokenOrder(
-                    tokenOrderId = this.tokenOrder.tokenOrderId,
+            is RedeemOrderSchemaV1 -> RedeemOrderSchemaV1.PersistentTokenOrder(
+                    redeemTokenOrderId = this.redeemTokenOrder.redeemTokenOrderId,
                     employeeName = this.employee.name,
-                    issuerName = this.issuer.name,
+                    vendorName = this.vendor.name,
                     linearId = this.linearId.toString(),
-                    courseName = this.tokenOrder.taskItem.courseName,
-                    courseCompleteDate = this.tokenOrder.taskItem.completeDate,
-                    tokenAmount = this.tokenOrder.taskItem.amount
+                    itemName = this.redeemTokenOrder.taskItem.itemName,
+                    tokenAmount = this.redeemTokenOrder.taskItem.amount
             )
             else -> throw IllegalArgumentException("Unrecognised schema $schema")
         }
     }
 
-    override fun supportedSchemas(): Iterable<MappedSchema> = listOf(TokenOrderSchemaV1)
+    override fun supportedSchemas(): Iterable<MappedSchema> = listOf(RedeemOrderSchemaV1)
 }
