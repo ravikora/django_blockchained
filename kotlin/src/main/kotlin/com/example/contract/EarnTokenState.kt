@@ -5,8 +5,8 @@ package com.example.contract
 
 import com.example.contract.PurchaseOrderContract.Commands
 import com.example.model.PurchaseOrder
-import com.example.model.Token
-import com.example.schema.PurchaseOrderSchemaV1
+import com.example.model.TokenOrder
+import com.example.schema.TokenOrderSchemaV1
 import net.corda.core.contracts.Command
 import net.corda.core.contracts.DealState
 import net.corda.core.contracts.TransactionType
@@ -20,7 +20,7 @@ import net.corda.core.transactions.TransactionBuilder
 import java.security.PublicKey
 
 /**
- * The state object which we will use the record the agreement of a valid purchase order issued by a buyer to a seller.
+ * The state object which we will use the record the agreement of a valid token issued by an issuer to an employee.
  *
  * There are a few key state interfaces. The most fundamental of which is [ContractState]. We have defined other
  * interfaces for different requirements. In this case we are implementing a [DealState] which defines a few helper
@@ -33,11 +33,11 @@ import java.security.PublicKey
  * transaction types.
  * @param linearId Unique id shared by all [LinearState] states throughout history within the vaults of all parties.
  */
-data class EarnTokenState(val token: Token,
+data class EarnTokenState(val tokenOrder: TokenOrder,
                               val employee: Party,
                               val issuer: Party,
                               override val contract: CourseContract,
-                              override val linearId: UniqueIdentifier = UniqueIdentifier(purchaseOrder.orderNumber.toString())):
+                              override val linearId: UniqueIdentifier = UniqueIdentifier(tokenOrder.tokenOrderId.toString())):
         DealState, QueryableState {
     /** Another ref field, for matching with data in external systems. In this case the external Id is the po number. */
     override val ref: String get() = linearId.externalId!!
@@ -63,24 +63,24 @@ data class EarnTokenState(val token: Token,
      * */
     override fun generateAgreement(notary: Party): TransactionBuilder {
         return TransactionType.General.Builder(notary)
-                .withItems(this, Command(PurchaseOrderContract.Commands.Place(), participants))
+                .withItems(this, Command(CourseContract.Commands.Place(), participants))
     }
 
     override fun generateMappedObject(schema: MappedSchema): PersistentState {
         // TODO: Deal with the one to many relationship between POs and Items.
         return when (schema) {
-            is PurchaseOrderSchemaV1 -> PurchaseOrderSchemaV1.PersistentPurchaseOrder(
-                    purchaseOrderId = this.purchaseOrder.orderNumber,
-                    buyerName = this.buyer.name,
-                    sellerName = this.seller.name,
+            is TokenOrderSchemaV1 -> TokenOrderSchemaV1.PersistentTokenOrder(
+                    tokenOrderId = this.tokenOrder.tokenOrderId,
+                    employeeName = this.employee.name,
+                    issuerName = this.issuer.name,
                     linearId = this.linearId.toString(),
-                    deliveryDate = this.purchaseOrder.deliveryDate,
-                    deliveryCity = this.purchaseOrder.deliveryAddress.city,
-                    deliveryCountry = this.purchaseOrder.deliveryAddress.country
+                    courseName = this.tokenOrder.taskItem.courseName,
+                    courseCompleteDate = this.tokenOrder.taskItem.completeDate,
+                    tokenAmount = this.tokenOrder.taskItem.amount
             )
             else -> throw IllegalArgumentException("Unrecognised schema $schema")
         }
     }
 
-    override fun supportedSchemas(): Iterable<MappedSchema> = listOf(PurchaseOrderSchemaV1)
+    override fun supportedSchemas(): Iterable<MappedSchema> = listOf(TokenOrderSchemaV1)
 }

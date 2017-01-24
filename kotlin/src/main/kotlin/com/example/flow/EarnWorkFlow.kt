@@ -36,21 +36,21 @@ import net.corda.flows.NotaryFlow
  * explains each stage of the flow.
  */
 object EarnWorkFlow {
-    class Initiator(val po: EarnTokenState,
+    class Initiator(val tokenState: EarnTokenState,
                     val otherParty: Party): FlowLogic<EarnFlowResult>() {
         /**
          * The progress tracker checkpoints each stage of the flow and outputs the specified messages when each
          * checkpoint is reached in the code. See the 'progressTracker.currentStep' expressions within the call() function.
          */
         companion object {
-            object CONSTRUCTING_OFFER : ProgressTracker.Step("Constructing proposed purchase order.")
-            object SENDING_OFFER : ProgressTracker.Step("Sending purchase order to seller for review.")
-            object RECEIVED_PARTIAL_TRANSACTION : ProgressTracker.Step("Received partially signed transaction from seller.")
+            object CONSTRUCTING_OFFER : ProgressTracker.Step("Constructing token order.")
+            object SENDING_OFFER : ProgressTracker.Step("Sending token order to issuer for review.")
+            object RECEIVED_PARTIAL_TRANSACTION : ProgressTracker.Step("Received partially signed transaction from issuer.")
             object VERIFYING : ProgressTracker.Step("Verifying signatures and contract constraints.")
             object SIGNING : ProgressTracker.Step("Signing transaction with our private key.")
-            object NOTARY : ProgressTracker.Step("Obtaining notary signature.")
+            //object NOTARY : ProgressTracker.Step("Obtaining notary signature.")
             object RECORDING : ProgressTracker.Step("Recording transaction in vault.")
-            object SENDING_FINAL_TRANSACTION : ProgressTracker.Step("Sending fully signed transaction to seller.")
+            object SENDING_FINAL_TRANSACTION : ProgressTracker.Step("Sending fully signed transaction to issuer.")
 
             fun tracker() = ProgressTracker(
                     CONSTRUCTING_OFFER,
@@ -58,7 +58,7 @@ object EarnWorkFlow {
                     RECEIVED_PARTIAL_TRANSACTION,
                     VERIFYING,
                     SIGNING,
-                    NOTARY,
+                    //NOTARY,
                     RECORDING,
                     SENDING_FINAL_TRANSACTION
             )
@@ -84,9 +84,9 @@ object EarnWorkFlow {
                 val notaryPubKey = notary.owningKey
                 // Stage 1.
                 progressTracker.currentStep = CONSTRUCTING_OFFER
-                // Construct a state object which encapsulates the PurchaseOrder object.
+                // Construct a state object which encapsulates the TokenOrder object.
                 // We add the public keys for us and the counterparty as well as a reference to the contract code.
-                val offerMessage = TransactionState(po, notary)
+                val offerMessage = TransactionState(tokenState, notary)
                 // Stage 2.
                 progressTracker.currentStep = SENDING_OFFER
                 // Send the state across the wire to the designated counterparty.
@@ -118,21 +118,21 @@ object EarnWorkFlow {
                 // '+' in this case is just an overloaded operator defined in 'signedTransaction.kt'.
                 val vtx = ptx + mySig
                 // Stage 9.
-                progressTracker.currentStep = NOTARY
+                //progressTracker.currentStep = NOTARY
                 // Obtain the notary's signature.
                 // We do this by firing-off a sub-flow. This illustrates the power of protocols as reusable workflows.
-                val notarySignature = subFlow(NotaryFlow.Client(vtx))
+                //val notarySignature = subFlow(NotaryFlow.Client(vtx))
                 // Add the notary signature to the transaction.
-                val ntx = vtx + notarySignature
+                //val ntx = vtx + notarySignature
                 // Stage 10.
                 progressTracker.currentStep = RECORDING
                 // Record the transaction in our vault.
-                serviceHub.recordTransactions(listOf(ntx))
+                serviceHub.recordTransactions(listOf(vtx))
                 // Stage 11.
                 progressTracker.currentStep = SENDING_FINAL_TRANSACTION
                 // Send a copy of the transaction to our counter-party.
-                send(otherParty, ntx)
-                return EarnFlowResult.Success("Transaction id ${ntx.id} committed to ledger.")
+                send(otherParty, vtx)
+                return EarnFlowResult.Success("Transaction id ${vtx.id} committed to ledger.")
             } catch(ex: Exception) {
                 // Just catch all exception types.
                 return EarnFlowResult.Failure(ex.message)
@@ -142,10 +142,10 @@ object EarnWorkFlow {
 
     class Acceptor(val otherParty: Party): FlowLogic<EarnFlowResult>() {
         companion object {
-            object WAITING_FOR_PROPOSAL : ProgressTracker.Step("Receiving proposed purchase order from buyer.")
-            object GENERATING_TRANSACTION : ProgressTracker.Step("Generating transaction based on proposed purchase order.")
+            object WAITING_FOR_PROPOSAL : ProgressTracker.Step("Receiving proposed token order from employee.")
+            object GENERATING_TRANSACTION : ProgressTracker.Step("Generating transaction based on proposed token order.")
             object SIGNING : ProgressTracker.Step("Signing proposed transaction with our private key.")
-            object SEND_TRANSACTION_AND_WAIT_FOR_RESPONSE : ProgressTracker.Step("Sending partially signed transaction to buyer and wait for a response.")
+            object SEND_TRANSACTION_AND_WAIT_FOR_RESPONSE : ProgressTracker.Step("Sending partially signed transaction to employee and wait for a response.")
             object VERIFYING_TRANSACTION : ProgressTracker.Step("Verifying signatures and contract constraints.")
             object RECORDING : ProgressTracker.Step("Recording transaction in vault.")
 

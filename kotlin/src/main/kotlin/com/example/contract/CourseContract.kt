@@ -80,7 +80,7 @@ open class CourseContract() : Contract {
 
         class Place : Clause<EarnTokenState, Commands, UniqueIdentifier>() {
             /* This should be moved to outer class */
-            val courseMap = hashMapOf(
+            val courseDateMap = hashMapOf(
                     "course1" to "2017-01-31",
                     "task1" to "2017-01-21")
 
@@ -110,7 +110,7 @@ open class CourseContract() : Contract {
 
                     //Earn Token Order constraints
                     "Token amount for a task must be greater than 0" by(out.tokenOrder.taskItem.amount > 0)
-                    "Task completion date must be before due date" by(out.tokenOrder.taskItem.completeDate < SimpleDateFormat("yyyy-MM-dd").parse(courseMap.get(out.tokenOrder.taskItem.courseName)))
+                    "Task completion date must be before due date" by(out.tokenOrder.taskItem.completeDate < SimpleDateFormat("yyyy-MM-dd").parse(courseDateMap.get(out.tokenOrder.taskItem.courseName)))
                 }
 
                 return setOf(command.value)
