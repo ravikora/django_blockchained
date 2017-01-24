@@ -6,6 +6,8 @@ import net.corda.core.contracts.Requirements.by
 import net.corda.core.contracts.clauses.*
 import net.corda.core.crypto.SecureHash
 import net.corda.core.random63BitValue
+import java.util.*
+import java.text.SimpleDateFormat
 
 /**
  * Created by ravi on 1/24/17.
@@ -15,11 +17,11 @@ import net.corda.core.random63BitValue
  * A implementation of a basic smart contract in Corda.
  *
  * This contract facilitates the business logic required for two parties to come to an agreement over a newly issued
- * [PurchaseOrderState], which in turn, encapsulates a [PurchaseOrder].
+ * [EarnTokenState], which in turn, encapsulates a [TokenOrder].
  *
- * For a new [PurchaseOrderState] to be issued onto the ledger a transaction is required which takes:
+ * For a new [EarnTokenState] to be issued onto the ledger a transaction is required which takes:
  * - Zero input states.
- * - One output state: the new [PurchaseOrderState].
+ * - One output state: the new [EarnTokenState].
  * - An Place() command with the public keys of the buyer and seller parties.
  * - A timestamp.
  *
@@ -31,6 +33,7 @@ import net.corda.core.random63BitValue
  * All contracts must sub-class the [Contract] interface.
  */
 open class CourseContract() : Contract {
+
     /**
      * The AllComposition() clause mandates that all specified clauses clauses (in this case [Timestamped] and [Group])
      * must be executed and valid for a transaction involving this type of contract to be valid.
@@ -69,36 +72,45 @@ open class CourseContract() : Contract {
         }
 
         // If you add additional clauses, make sure to reference them within the 'FirstComposition()' clause.
-        class Group : GroupClauseVerifier<PurchaseOrderState, Commands, UniqueIdentifier>(FirstComposition(Place())) {
-            override fun groupStates(tx: TransactionForContract): List<TransactionForContract.InOutGroup<PurchaseOrderState, UniqueIdentifier>>
+        class Group : GroupClauseVerifier<EarnTokenState, Commands, UniqueIdentifier>(FirstComposition(Place())) {
+            override fun groupStates(tx: TransactionForContract): List<TransactionForContract.InOutGroup<EarnTokenState, UniqueIdentifier>>
                     // Group by purchase order linearId for in / out states
-                    = tx.groupStates(PurchaseOrderState::linearId)
+                    = tx.groupStates(EarnTokenState::linearId)
         }
 
-        class Place : Clause<PurchaseOrderState, Commands, UniqueIdentifier>() {
+        class Place : Clause<EarnTokenState, Commands, UniqueIdentifier>() {
+            /* This should be moved to outer class */
+            val courseMap = hashMapOf(
+                    "course1" to "2017-01-31",
+                    "task1" to "2017-01-21")
+
             override val requiredCommands: Set<Class<out CommandData>> = setOf(Commands.Place::class.java)
 
             override fun verify(tx: TransactionForContract,
-                                inputs: List<PurchaseOrderState>,
-                                outputs: List<PurchaseOrderState>,
+                                inputs: List<EarnTokenState>,
+                                outputs: List<EarnTokenState>,
                                 commands: List<AuthenticatedObject<Commands>>,
                                 groupingKey: UniqueIdentifier?): Set<Commands> {
                 val command = tx.commands.requireSingleCommand<Commands.Place>()
                 requireThat {
                     // Generic constraints around generation of the issue purchase order transaction.
-                    "No inputs should be consumed when issuing a purchase order." by (inputs.isEmpty())
+                    "No inputs should be consumed when issuing a token." by (inputs.isEmpty())
                     "Only one output state should be created for each group." by (outputs.size == 1)
                     val out = outputs.single()
-                    "The buyer and the seller cannot be the same entity." by (out.buyer != out.seller)
+                    "The employee and the issuer cannot be the same entity." by (out.employee != out.issuer)
                     "All of the participants must be signers." by (command.signers.containsAll(out.participants))
 
                     // Purchase order specific constraints.
-                    "We only deliver to the UK." by (out.purchaseOrder.deliveryAddress.country == "UK")
-                    "You must order at least one type of item." by (out.purchaseOrder.items.isNotEmpty())
-                    "You cannot order zero or negative amounts of an item." by (out.purchaseOrder.items.map(Item::amount).all { it > 0 })
-                    "You can only order up to 100 items in total." by (out.purchaseOrder.items.map(Item::amount).sum() <= 100)
-                    val time = tx.timestamp?.midpoint
-                    "The delivery date must be in the future." by (out.purchaseOrder.deliveryDate.toInstant() > time)
+                   // "We only deliver to the UK." by (out.purchaseOrder.deliveryAddress.country == "UK")
+                   // "You must order at least one type of item." by (out.purchaseOrder.items.isNotEmpty())
+                    //"You cannot order zero or negative amounts of an item." by (out.purchaseOrder.items.map(Item::amount).all { it > 0 })
+                    //"You can only order up to 100 items in total." by (out.purchaseOrder.items.map(Item::amount).sum() <= 100)
+                    //val time = tx.timestamp?.midpoint
+                    //"The delivery date must be in the future." by (out.purchaseOrder.deliveryDate.toInstant() > time)
+
+                    //Earn Token Order constraints
+                    "Token amount for a task must be greater than 0" by(out.tokenOrder.taskItem.amount > 0)
+                    "Task completion date must be before due date" by(out.tokenOrder.taskItem.completeDate < SimpleDateFormat("yyyy-MM-dd").parse(courseMap.get(out.tokenOrder.taskItem.courseName)))
                 }
 
                 return setOf(command.value)
