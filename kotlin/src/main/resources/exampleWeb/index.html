@@ -87,19 +87,19 @@ COMING WEEKS WE'LL WRITE A TUTORIAL ON HOW BEST TO DO THIS.
     <div class="col-md-10">
         <div ng-show="!demoApp.pos.length" class="panel panel-primary">
             <div class="panel-heading">
-                <h3 class="panel-title">There are no recorded token orders</h3>
+                <h3 class="panel-title">There are no recorded tasks</h3>
             </div>
-            <div class="panel-body">Use the "Create token order" button to establish a token order with a peer.</div>
+            <div class="panel-body">Use the "Create Token order" button to establish a Token order with a peer.</div>
         </div>
         <div ng-show="demoApp.pos.length" class="panel panel-primary">
             <div class="panel-heading">
-                <h3 class="panel-title">Recorded purchase orders:</h3>
+                <h3 class="panel-title">Recorded Tasks:</h3>
             </div>
         </div>
         <div ng-repeat="to in demoApp.pos" class="panel panel-default">
             <div class="panel-body">
                 <ul>
-                    <li>Token Order ID: {{to.purchaseOrder.orderNumber}}</li>
+                    <li>Token Order ID: {{to.tokenOrder.tokenOrderId}}</li>
                     <li>Contract Hash: {{to.contract.legalContractReference}}</li>
                     <li>Employee: {{to.employee}}</li>
                     <li>Issuer: {{to.issuer}}</li>
