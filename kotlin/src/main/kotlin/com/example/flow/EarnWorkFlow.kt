@@ -48,7 +48,7 @@ object EarnWorkFlow {
             object RECEIVED_PARTIAL_TRANSACTION : ProgressTracker.Step("Received partially signed transaction from issuer.")
             object VERIFYING : ProgressTracker.Step("Verifying signatures and contract constraints.")
             object SIGNING : ProgressTracker.Step("Signing transaction with our private key.")
-            //object NOTARY : ProgressTracker.Step("Obtaining notary signature.")
+            object NOTARY : ProgressTracker.Step("Obtaining notary signature.")
             object RECORDING : ProgressTracker.Step("Recording transaction in vault.")
             object SENDING_FINAL_TRANSACTION : ProgressTracker.Step("Sending fully signed transaction to issuer.")
 
@@ -58,7 +58,7 @@ object EarnWorkFlow {
                     RECEIVED_PARTIAL_TRANSACTION,
                     VERIFYING,
                     SIGNING,
-                    //NOTARY,
+                    NOTARY,
                     RECORDING,
                     SENDING_FINAL_TRANSACTION
             )
@@ -118,21 +118,21 @@ object EarnWorkFlow {
                 // '+' in this case is just an overloaded operator defined in 'signedTransaction.kt'.
                 val vtx = ptx + mySig
                 // Stage 9.
-                //progressTracker.currentStep = NOTARY
+                progressTracker.currentStep = NOTARY
                 // Obtain the notary's signature.
                 // We do this by firing-off a sub-flow. This illustrates the power of protocols as reusable workflows.
-                //val notarySignature = subFlow(NotaryFlow.Client(vtx))
+                val notarySignature = subFlow(NotaryFlow.Client(vtx))
                 // Add the notary signature to the transaction.
-                //val ntx = vtx + notarySignature
+                val ntx = vtx + notarySignature
                 // Stage 10.
                 progressTracker.currentStep = RECORDING
                 // Record the transaction in our vault.
-                serviceHub.recordTransactions(listOf(vtx))
+                serviceHub.recordTransactions(listOf(ntx))
                 // Stage 11.
                 progressTracker.currentStep = SENDING_FINAL_TRANSACTION
                 // Send a copy of the transaction to our counter-party.
-                send(otherParty, vtx)
-                return EarnFlowResult.Success("Transaction id ${vtx.id} committed to ledger.")
+                send(otherParty, ntx)
+                return EarnFlowResult.Success("Transaction id ${ntx.id} committed to ledger.")
             } catch(ex: Exception) {
                 // Just catch all exception types.
                 return EarnFlowResult.Failure(ex.message)

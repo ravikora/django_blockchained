@@ -81,8 +81,13 @@ open class TaskContract() : Contract {
         class Place : Clause<EarnTokenState, Commands, UniqueIdentifier>() {
             /* This should be moved to outer class */
             val courseDateMap = hashMapOf(
-                    "course1" to "2017-01-31",
-                    "task1" to "2017-01-21")
+                    "MandatoryTraining" to "2017-01-31",
+                    "BugFinder" to "2017-01-21",
+                    "MacroBuilder" to "2017-04-30",
+                    "DevOps" to "2017-06-20",
+                    "PriceTesting" to "2017-04-30",
+                    "VendorDueDiligence" to "2017-12-31"
+                    )
 
             override val requiredCommands: Set<Class<out CommandData>> = setOf(Commands.Place::class.java)
 
