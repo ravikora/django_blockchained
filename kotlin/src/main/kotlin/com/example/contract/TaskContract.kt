@@ -82,10 +82,10 @@ open class TaskContract() : Contract {
             /* This should be moved to outer class */
             val courseDateMap = hashMapOf(
                     "MandatoryTraining" to "2017-01-31",
-                    "BugFinder" to "2017-01-21",
+                    "BugFinder" to "2017-02-28",
                     "MacroBuilder" to "2017-04-30",
                     "DevOps" to "2017-06-20",
-                    "PriceTesting" to "2017-04-30",
+                    "PriceTesting" to "2017-07-30",
                     "VendorDueDiligence" to "2017-12-31"
                     )
 
