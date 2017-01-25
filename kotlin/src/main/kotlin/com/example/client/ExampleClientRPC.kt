@@ -1,5 +1,6 @@
 package com.example.client
 
+import com.example.contract.EarnTokenState
 import com.example.contract.PurchaseOrderState
 import com.google.common.net.HostAndPort
 import net.corda.core.transactions.SignedTransaction
@@ -39,8 +40,8 @@ private class ExampleClientRPC {
         // Log the 'placed' purchase order states and listen for new ones.
         futureTransactions.startWith(transactions).toBlocking().subscribe { transaction ->
             transaction.tx.outputs.forEach { output ->
-                val state = output.data as PurchaseOrderState
-                logger.info(state.purchaseOrder.toString())
+                val state = output.data as EarnTokenState
+                logger.info(state.tokenOrder.toString())
             }
         }
     }
