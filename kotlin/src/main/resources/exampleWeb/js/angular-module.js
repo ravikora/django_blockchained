@@ -74,8 +74,8 @@ app.controller('ModalInstanceCtrl', function ($http, $location, $uibModalInstanc
             const to = {
                 tokenOrderId: modalInstance.form.tokenOrderId,
                 taskItem: { courseName:  modalInstance.form.courseName,
-                        tokenAmount: modalInstance.form.tokenAmount,
-                        completeDate: modalInstance.form.completeDate
+                        completeDate: modalInstance.form.completeDate,
+                        amount: modalInstance.form.tokenAmount
                 }
             };
 
